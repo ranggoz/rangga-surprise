@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surprise for My Girlfriend</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #ffebee;
+            color: #d32f2f;
+            text-align: center;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        #quiz-container, #final-page {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        
+        h1 {
+            color: #c2185b;
+        }
+        
+        #question {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        #answer {
+            padding: 10px;
+            width: 80%;
+            border: 2px solid #f8bbd0;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #c2185b;
+        }
+        
+        #feedback {
+            min-height: 20px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        #final-page a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 25px;
+            background-color: #e91e63;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        #final-page a:hover {
+            background-color: #c2185b;
+        }
+        
+        .heart {
+            color: #e91e63;
+            font-size: 1.5em;
+        }
+        
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <h1>Welcome! Let's see how well you know me! <span class="heart">❤</span></h1>
+        <div id="question-container">
+            <p id="question">Is Rangga your BF or HTS?</p>
+            <input type="text" id="answer" placeholder="Your answer here">
+            <button id="submit">Submit</button>
+            <p id="feedback"></p>
+        </div>
+    </div>
+    <div id="final-page" style="display: none;">
+        <h1>Congratulations! <span class="heart">❤</span></h1>
+        <p>Now you can see your dating plan with Rangga <span class="heart">❤</span></p>
+        <a href="https://docs.google.com/spreadsheets/d/1wPnvwlx0m4KlX01tjq1N1xid0BIhz0UMA4UqgRrEWQ8/edit?usp=sharing" target="_blank">Click here to see your dating plan!</a>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quizContainer = document.getElementById('quiz-container');
+            const finalPage = document.getElementById('final-page');
+            const questionElement = document.getElementById('question');
+            const answerInput = document.getElementById('answer');
+            const submitButton = document.getElementById('submit');
+            const feedbackElement = document.getElementById('feedback');
+            
+            const questions = [
+                {
+                    question: "Is Rangga your BF or HTS?",
+                    answer: "bf",
+                    check: function(userAnswer) {
+                        return userAnswer.toLowerCase() === this.answer;
+                    }
+                },
+                {
+                    question: "Where do you guys meet? (type in capital)",
+                    answer: "LEVEL 21",
+                    check: function(userAnswer) {
+                        return userAnswer === this.answer;
+                    }
+                },
+                {
+                    question: "(Rangga wouldn't know your answer this time) Please tell your message to Rangga honestly, about everything",
+                    answer: null,
+                    check: function(userAnswer) {
+                        return userAnswer.trim() !== '';
+                    }
+                }
+            ];
+            
+            let currentQuestion = 0;
+            
+            function showQuestion() {
+                questionElement.textContent = questions[currentQuestion].question;
+                answerInput.value = '';
+                feedbackElement.textContent = '';
+            }
+            
+            async function submitToGoogleSheet(message) {
+                // This is a simplified approach. In production, you'd need a proper backend.
+                // For now, we'll just open the spreadsheet for the user to manually enter.
+                window.open("https://docs.google.com/spreadsheets/d/1cquS6KvekgFwT4qKHpn0HIclSrCcl9kJ7t86203CHLo/edit?usp=sharing", "_blank");
+                return true;
+            }
+            
+            submitButton.addEventListener('click', async function() {
+                const userAnswer = answerInput.value.trim();
+                
+                if (userAnswer === '') {
+                    feedbackElement.textContent = 'Please enter an answer!';
+                    feedbackElement.style.color = 'red';
+                    return;
+                }
+                
+                if (questions[currentQuestion].check(userAnswer)) {
+                    feedbackElement.textContent = 'Correct! ❤';
+                    feedbackElement.style.color = 'green';
+                    
+                    // For Q3, handle the special case
+                    if (currentQuestion === 2) {
+                        const success = await submitToGoogleSheet(userAnswer);
+                        if (success) {
+                            setTimeout(function() {
+                                quizContainer.style.display = 'none';
+                                finalPage.style.display = 'block';
+                                
+                                // Add confetti effect
+                                const confettiSettings = { target: 'confetti-canvas', max: 150 };
+                                const confetti = new ConfettiGenerator(confettiSettings);
+                                confetti.render();
+                            }, 1500);
+                        }
+                        return;
+                    }
+                    
+                    // Move to next question
+                    setTimeout(function() {
+                        currentQuestion++;
+                        showQuestion();
+                    }, 1500);
+                } else {
+                    feedbackElement.textContent = 'Not quite right, try again!';
+                    feedbackElement.style.color = 'red';
+                    
+                    // Special feedback for Q1 if they say HTS
+                    if (currentQuestion === 0 && userAnswer.toLowerCase().includes('hts')) {
+                        feedbackElement.textContent = 'HTS?! Really? Try again! 😠';
+                    }
+                }
+            });
+            
+            // Start the quiz
+            showQuestion();
+        });
+    </script>
+</body>
+</html>
